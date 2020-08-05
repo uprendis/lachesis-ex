@@ -35,45 +35,45 @@ func (s *Service) UpdateAddressPOI(address common.Address, senderTotalFee *big.I
 // updateUsersPOI calculates the Proof Of Importance weights for users
 func (s *Service) updateUsersPOI(block *inter.Block, evmBlock *evmcore.EvmBlock, receipts types.Receipts, totalFee *big.Int, sealEpoch bool) {
 	// User POI calculations
-	poiPeriod := PoiPeriod(block.Time, &s.config.Net.Economy)
-	s.app.AddPoiFee(poiPeriod, totalFee)
-
-	for i, tx := range evmBlock.Transactions {
-		txFee := new(big.Int).Mul(new(big.Int).SetUint64(receipts[i].GasUsed), tx.GasPrice())
-
-		signer := types.NewEIP155Signer(s.config.Net.EvmChainConfig().ChainID)
-		sender, err := signer.Sender(tx)
-		if err != nil {
-			s.Log.Crit("Failed to get sender from transaction", "err", err)
-		}
-
-		senderLastTxTime := s.app.GetAddressLastTxTime(sender)
-		prevUserPoiPeriod := PoiPeriod(senderLastTxTime, &s.config.Net.Economy)
-		senderTotalFee := s.app.GetAddressFee(sender, prevUserPoiPeriod)
-
-		delegations := s.app.GetSfcDelegationsByAddr(sender, maxPoiDelegations)
-		for _, it := range delegations {
-			staker := s.app.GetSfcStaker(it.ID.StakerID)
-			if staker != nil {
-				prevWeightedTxFee := s.app.GetWeightedDelegationsFee(it.ID.StakerID)
-
-				weightedTxFee := new(big.Int).Mul(txFee, it.Delegation.Amount)
-				weightedTxFee.Div(weightedTxFee, staker.CalcTotalStake())
-
-				weightedTxFee.Add(weightedTxFee, prevWeightedTxFee)
-				s.app.SetWeightedDelegationsFee(it.ID.StakerID, weightedTxFee)
-			}
-		}
-
-		if prevUserPoiPeriod != poiPeriod {
-			s.UpdateAddressPOI(sender, senderTotalFee, prevUserPoiPeriod)
-			senderTotalFee = big.NewInt(0)
-		}
-
-		s.app.SetAddressLastTxTime(sender, block.Time)
-		senderTotalFee.Add(senderTotalFee, txFee)
-		s.app.SetAddressFee(sender, poiPeriod, senderTotalFee)
-	}
+	//poiPeriod := PoiPeriod(block.Time, &s.config.Net.Economy)
+	//s.app.AddPoiFee(poiPeriod, totalFee)
+	//
+	//for i, tx := range evmBlock.Transactions {
+	//	txFee := new(big.Int).Mul(new(big.Int).SetUint64(receipts[i].GasUsed), tx.GasPrice())
+	//
+	//	signer := types.NewEIP155Signer(s.config.Net.EvmChainConfig().ChainID)
+	//	sender, err := signer.Sender(tx)
+	//	if err != nil {
+	//		s.Log.Crit("Failed to get sender from transaction", "err", err)
+	//	}
+	//
+	//	senderLastTxTime := s.app.GetAddressLastTxTime(sender)
+	//	prevUserPoiPeriod := PoiPeriod(senderLastTxTime, &s.config.Net.Economy)
+	//	senderTotalFee := s.app.GetAddressFee(sender, prevUserPoiPeriod)
+	//
+	//	delegations := s.app.GetSfcDelegationsByAddr(sender, maxPoiDelegations)
+	//	for _, it := range delegations {
+	//		staker := s.app.GetSfcStaker(it.ID.StakerID)
+	//		if staker != nil {
+	//			prevWeightedTxFee := s.app.GetWeightedDelegationsFee(it.ID.StakerID)
+	//
+	//			weightedTxFee := new(big.Int).Mul(txFee, it.Delegation.Amount)
+	//			weightedTxFee.Div(weightedTxFee, staker.CalcTotalStake())
+	//
+	//			weightedTxFee.Add(weightedTxFee, prevWeightedTxFee)
+	//			s.app.SetWeightedDelegationsFee(it.ID.StakerID, weightedTxFee)
+	//		}
+	//	}
+	//
+	//	if prevUserPoiPeriod != poiPeriod {
+	//		s.UpdateAddressPOI(sender, senderTotalFee, prevUserPoiPeriod)
+	//		senderTotalFee = big.NewInt(0)
+	//	}
+	//
+	//	s.app.SetAddressLastTxTime(sender, block.Time)
+	//	senderTotalFee.Add(senderTotalFee, txFee)
+	//	s.app.SetAddressFee(sender, poiPeriod, senderTotalFee)
+	//}
 
 }
 
@@ -105,15 +105,15 @@ func (s *Service) UpdateStakerPOI(stakerID idx.StakerID, stakerAddress common.Ad
 
 // updateStakersPOI calculates the Proof Of Importance weights for stakers
 func (s *Service) updateStakersPOI(block *inter.Block, sealEpoch bool) {
-	// Stakers POI calculations
-	poiPeriod := PoiPeriod(block.Time, &s.config.Net.Economy)
-	prevBlockPoiPeriod := PoiPeriod(s.store.GetBlock(block.Index-1).Time, &s.config.Net.Economy)
-
-	if poiPeriod != prevBlockPoiPeriod {
-		for _, it := range s.GetActiveSfcStakers() {
-			s.UpdateStakerPOI(it.StakerID, it.Staker.Address, prevBlockPoiPeriod)
-		}
-		// clear StakersDelegationsFee counters
-		s.app.DelAllWeightedDelegationsFee()
-	}
+	//// Stakers POI calculations
+	//poiPeriod := PoiPeriod(block.Time, &s.config.Net.Economy)
+	//prevBlockPoiPeriod := PoiPeriod(s.store.GetBlock(block.Index-1).Time, &s.config.Net.Economy)
+	//
+	//if poiPeriod != prevBlockPoiPeriod {
+	//	for _, it := range s.GetActiveSfcStakers() {
+	//		s.UpdateStakerPOI(it.StakerID, it.Staker.Address, prevBlockPoiPeriod)
+	//	}
+	//	// clear StakersDelegationsFee counters
+	//	s.app.DelAllWeightedDelegationsFee()
+	//}
 }

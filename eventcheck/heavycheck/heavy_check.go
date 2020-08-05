@@ -131,17 +131,17 @@ func (v *Checker) Validate(e *inter.Event) error {
 	if !e.VerifySignature(addr) {
 		return ErrWrongEventSig
 	}
-	// pre-cache tx sig
-	for _, tx := range e.Transactions {
-		_, err := types.Sender(v.txSigner, tx)
-		if err != nil {
-			return ErrMalformedTxSig
-		}
-	}
-	// Merkle tree
-	if e.TxHash != types.DeriveSha(e.Transactions) {
-		return ErrWrongTxHash
-	}
+	//// pre-cache tx sig
+	//for _, tx := range e.Transactions {
+	//	_, err := types.Sender(v.txSigner, tx)
+	//	if err != nil {
+	//		return ErrMalformedTxSig
+	//	}
+	//}
+	//// Merkle tree
+	//if e.TxHash != types.DeriveSha(e.Transactions) {
+	//	return ErrWrongTxHash
+	//}
 
 	return nil
 }

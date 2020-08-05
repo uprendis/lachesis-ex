@@ -56,18 +56,27 @@ func (p *StateProcessor) Process(block *EvmBlock, statedb *state.StateDB, cfg vm
 		receipts types.Receipts
 		usedGas  = new(uint64)
 		allLogs  []*types.Log
-		gp       = new(GasPool).AddGas(block.GasLimit)
+		//gp       = new(GasPool).AddGas(block.GasLimit)
 		skipped  = make([]uint, 0, len(block.Transactions))
 		totalFee = new(big.Int)
 	)
 	// Iterate over and process the individual transactions
 	for i, tx := range block.Transactions {
-		statedb.Prepare(tx.Hash(), block.Hash, i)
-		receipt, _, fee, skip, err := ApplyTransaction(p.config, p.bc, nil, gp, statedb, block.Header(), tx, usedGas, cfg, strict)
-		if !strict && (skip || err != nil) {
-			skipped = append(skipped, uint(i))
-			continue
+		//statedb.Prepare(tx.Hash(), block.Hash, i)
+		//receipt, _, fee, skip, err := ApplyTransaction(p.config, p.bc, nil, gp, statedb, block.Header(), tx, usedGas, cfg, strict)
+		//if !strict && (skip || err != nil) {
+		//	skipped = append(skipped, uint(i))
+		//	continue
+		//}
+		receipt := &types.Receipt{
+			Status:            0,
+			CumulativeGasUsed: tx.Gas(),
+			Logs:              []*types.Log{},
+			TxHash:            tx.Hash(),
+			GasUsed:           tx.Gas(),
+			TransactionIndex:  uint(i),
 		}
+		fee := new(big.Int).Mul(new(big.Int).SetUint64(tx.Gas()), tx.GasPrice())
 		totalFee.Add(totalFee, fee)
 		receipts = append(receipts, receipt)
 		allLogs = append(allLogs, receipt.Logs...)
