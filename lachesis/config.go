@@ -15,9 +15,9 @@ import (
 )
 
 const (
-	MainNetworkID uint64 = 0xfa
-	TestNetworkID uint64 = 0xfa2
-	FakeNetworkID uint64 = 0xfa3
+	MainNetworkID uint64 = 0xefa
+	TestNetworkID uint64 = 0xefa2
+	FakeNetworkID uint64 = 0xefa3
 )
 
 var (

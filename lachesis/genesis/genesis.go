@@ -43,8 +43,9 @@ func preDeploySfc(g Genesis, implCode []byte) Genesis {
 // FakeGenesis generates fake genesis with n-nodes.
 func FakeGenesis(accs VAccounts) Genesis {
 	g := Genesis{
-		Alloc: accs,
-		Time:  genesisTime,
+		Alloc:     accs,
+		Time:      genesisTime,
+		ExtraData: []byte("experimental"),
 	}
 	g = preDeploySfc(g, sfc.GetTestContractBinV1())
 	return g
@@ -53,7 +54,8 @@ func FakeGenesis(accs VAccounts) Genesis {
 // MainGenesis returns builtin genesis keys of mainnet.
 func MainGenesis() Genesis {
 	g := Genesis{
-		Time: genesisTime,
+		Time:      genesisTime,
+		ExtraData: []byte("experimental"),
 		Alloc: VAccounts{
 			Accounts: Accounts{
 				common.HexToAddress("0xd6A37423Be930019b8CFeA57BE049329f3119a3D"): Account{Balance: utils.ToFtm(2000000100)},
@@ -142,7 +144,8 @@ func MainGenesis() Genesis {
 // TestGenesis returns builtin genesis keys of testnet.
 func TestGenesis() Genesis {
 	g := Genesis{
-		Time: genesisTime,
+		Time:      genesisTime,
+		ExtraData: []byte("experimental"),
 		Alloc: VAccounts{
 			Accounts: Accounts{
 				common.HexToAddress("0xe003e080e8d61207a0a9890c3663b4cd7fb766b8"): Account{Balance: utils.ToFtm(2000000100)},

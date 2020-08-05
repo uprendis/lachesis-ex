@@ -29,7 +29,7 @@ import (
 
 const (
 	// clientIdentifier to advertise over the network.
-	clientIdentifier = "go-lachesis"
+	clientIdentifier = "lachesis-ex"
 )
 
 var (
