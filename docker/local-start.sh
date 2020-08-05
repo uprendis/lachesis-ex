@@ -22,6 +22,8 @@ do
     (go run ../cmd/lachesis \
 	--datadir=${DATADIR} \
 	--fakenet=${ACC}/$N,test_accs.json \
+	--bps=1000 \
+	--txpayload=10000 \
 	--port=${PORT} \
 	--rpc --rpcaddr="127.0.0.1" --rpcport=${RPCP} --rpccorsdomain="*" --rpcapi="eth,debug,admin,web3,personal,txpool,ftm,sfc" \
 	--ws --wsaddr="127.0.0.1" --wsport=${WSP} --wsorigins="*" --wsapi="eth,debug,admin,web3,personal,txpool,ftm,sfc" \

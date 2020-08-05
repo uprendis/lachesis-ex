@@ -25,6 +25,14 @@ var FakeNetFlag = cli.StringFlag{
 	Usage: "'n/N[,non-validators]' - sets coinbase as fake n-th key from genesis of N validators. Non-validators is a count or json-file.",
 }
 
+var BytesPerSecondFlag = cli.StringFlag{
+	Name: "bps",
+}
+
+var TxPayloadFlag = cli.StringFlag{
+	Name: "txpayload",
+}
+
 func addFakeAccount(ctx *cli.Context, stack *node.Node) {
 	if !ctx.GlobalIsSet(FakeNetFlag.Name) {
 		return

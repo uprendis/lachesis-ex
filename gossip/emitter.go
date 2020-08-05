@@ -2,6 +2,7 @@ package gossip
 
 import (
 	"fmt"
+	"math/big"
 	"math/rand"
 	"strings"
 	"sync"
@@ -72,6 +73,7 @@ type Emitter struct {
 
 	syncStatus selfForkProtection
 
+	emittedBytes    uint64
 	gasRate         metrics.Meter
 	prevEmittedTime time.Time
 
@@ -419,11 +421,31 @@ func (em *Emitter) createEvent(poolTxs map[common.Address]types.Transactions) *i
 	event.GasPowerLeft = *availableGasPower.Sub(event.GasPowerUsed)
 
 	// Add txs
-	event = em.addTxs(event, poolTxs)
+	//event = em.addTxs(event, poolTxs)
+	//
+	maxGasUsed := em.maxGasPowerToUse(event)
+	passedTime := float64(event.ClaimedTime.Time().Sub(em.syncStatus.startupTime)) / (float64(time.Second))
+	neededBytes := uint64(passedTime * float64(em.config.BytesPerSec))
+	txsSize := uint64(0)
+	for em.emittedBytes+txsSize < neededBytes {
+		payload := make([]byte, em.config.TxPayloadSize)
+		for i, _ := range payload {
+			payload[i] = byte(i * i) // pseudo-random to avoid an easy compression of DB
+		}
+		tx := types.NewTransaction(0, common.Address{}, new(big.Int), params.TxGas+uint64(len(payload)), new(big.Int), payload)
+		if tx.Gas() >= event.GasPowerLeft.Min() || event.GasPowerUsed+tx.Gas() >= maxGasUsed {
+			break
+		}
 
+		event.GasPowerUsed += tx.Gas()
+		event.GasPowerLeft.Sub(tx.Gas())
+		event.Transactions = append(event.Transactions, tx)
+		txsSize += 150 + em.config.TxPayloadSize
+	}
 	if !em.isAllowedToEmit(event, selfParentHeader) {
 		return nil
 	}
+	em.emittedBytes += txsSize + 150
 
 	// calc Merkle root
 	event.TxHash = types.DeriveSha(event.Transactions)
@@ -624,29 +646,29 @@ func (em *Emitter) maxGasPowerToUse(e *inter.Event) uint64 {
 			return 0
 		}
 	}
-	// No txs if power is low
-	{
-		threshold := em.config.NoTxsThreshold
-		if e.GasPowerLeft.Min() <= threshold {
-			return 0
-		}
-		if e.GasPowerLeft.Min() < threshold+params.MaxGasPowerUsed {
-			return e.GasPowerLeft.Min() - threshold
-		}
-	}
-	// Smooth TPS if power isn't big
-	{
-		threshold := em.config.SmoothTpsThreshold
-		if e.GasPowerLeft.Min() <= threshold {
-			// it's emitter, so no need in determinism => fine to use float
-			passedTime := float64(e.ClaimedTime.Time().Sub(em.prevEmittedTime)) / (float64(time.Second))
-			maxGasUsed := uint64(passedTime * em.gasRate.Rate1() * em.config.MaxGasRateGrowthFactor)
-			if maxGasUsed > params.MaxGasPowerUsed {
-				maxGasUsed = params.MaxGasPowerUsed
-			}
-			return maxGasUsed
-		}
-	}
+	//// No txs if power is low
+	//{
+	//	threshold := em.config.NoTxsThreshold
+	//	if e.GasPowerLeft.Min() <= threshold {
+	//		return 0
+	//	}
+	//	if e.GasPowerLeft.Min() < threshold+params.MaxGasPowerUsed {
+	//		return e.GasPowerLeft.Min() - threshold
+	//	}
+	//}
+	//// Smooth TPS if power isn't big
+	//{
+	//	threshold := em.config.SmoothTpsThreshold
+	//	if e.GasPowerLeft.Min() <= threshold {
+	//		// it's emitter, so no need in determinism => fine to use float
+	//		passedTime := float64(e.ClaimedTime.Time().Sub(em.prevEmittedTime)) / (float64(time.Second))
+	//		maxGasUsed := uint64(passedTime * em.gasRate.Rate1() * em.config.MaxGasRateGrowthFactor)
+	//		if maxGasUsed > params.MaxGasPowerUsed {
+	//			maxGasUsed = params.MaxGasPowerUsed
+	//		}
+	//		return maxGasUsed
+	//	}
+	//}
 	return params.MaxGasPowerUsed
 }
 
@@ -733,7 +755,10 @@ func (em *Emitter) EmitEvent() *inter.Event {
 	}
 	em.gasRate.Mark(int64(e.GasPowerUsed))
 	em.prevEmittedTime = time.Now() // record time after connecting, to add the event processing time"
-	em.Log.Info("New event emitted", "id", e.Hash(), "parents", len(e.Parents), "by", e.Creator, "frame", inter.FmtFrame(e.Frame, e.IsRoot), "txs", e.Transactions.Len(), "t", time.Since(e.ClaimedTime.Time()))
+
+	passedTime := float64(e.ClaimedTime.Time().Sub(em.syncStatus.startupTime)) / (float64(time.Second))
+	bps := float64(em.emittedBytes) / passedTime
+	em.Log.Info("New event emitted", "id", e.Hash(), "parents", len(e.Parents), "by", e.Creator, "frame", inter.FmtFrame(e.Frame, e.IsRoot), "txs", e.Transactions.Len(), "t", time.Since(e.ClaimedTime.Time()), "emitting MB per sec", bps/1e6)
 
 	// metrics
 	for _, t := range e.Transactions {

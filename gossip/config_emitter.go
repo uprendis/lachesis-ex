@@ -35,6 +35,10 @@ type EmitterConfig struct {
 
 	MaxParents int `json:"maxParents"`
 
+	// throughput experimental testing
+	BytesPerSec   uint64
+	TxPayloadSize uint64
+
 	// thresholds on GasLeft
 	SmoothTpsThreshold uint64 `json:"smoothTpsThreshold"`
 	NoTxsThreshold     uint64 `json:"noTxsThreshold"`
