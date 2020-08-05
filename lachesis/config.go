@@ -191,8 +191,8 @@ func FakeNetDagConfig() DagConfig {
 // DefaulLongGasPowerConfig is long-window config
 func DefaulLongGasPowerConfig() GasPowerConfig {
 	return GasPowerConfig{
-		InitialAllocPerSec: 100 * params.EventGas,
-		MaxAllocPerSec:     1000 * params.EventGas,
+		InitialAllocPerSec: 10000000000 * params.EventGas,
+		MaxAllocPerSec:     1000000000000 * params.EventGas,
 		MinAllocPerSec:     10 * params.EventGas,
 		MaxAllocPeriod:     inter.Timestamp(60 * time.Minute),
 		StartupAllocPeriod: inter.Timestamp(5 * time.Second),
@@ -215,15 +215,15 @@ func DefaultShortGasPowerConfig() GasPowerConfig {
 // FakeLongGasPowerConfig is fake long-window config
 func FakeLongGasPowerConfig() GasPowerConfig {
 	config := DefaulLongGasPowerConfig()
-	config.InitialAllocPerSec *= 1000
-	config.MaxAllocPerSec *= 1000
+	//config.InitialAllocPerSec *= 1000
+	//config.MaxAllocPerSec *= 1000
 	return config
 }
 
 // FakeShortGasPowerConfig is fake short-window config
 func FakeShortGasPowerConfig() GasPowerConfig {
 	config := DefaultShortGasPowerConfig()
-	config.InitialAllocPerSec *= 1000
-	config.MaxAllocPerSec *= 1000
+	//config.InitialAllocPerSec *= 1000
+	//config.MaxAllocPerSec *= 1000
 	return config
 }
